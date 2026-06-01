@@ -1,0 +1,8 @@
+name: Punish
+main: com.bedtwlserver.punish.core.Punish
+version: 0.1
+commands:
+  ban:
+  unban:
+  mute:
+  unmute:

@@ -1,0 +1,26 @@
+storage:
+  use: sqlite
+  sqlite:
+    file: database.db
+  mysql:
+    address: 172.18.0.1
+    port: 11451
+    database: punish
+    username: kanade
+    password: cute
+message:
+  permanent: "永久"
+  console: "反作弊/後台"
+  denied_banned: "&fbedtw&cL &fServer\n&c你已被限制登入!\n&f執行者: &b{executor}\n&f原因: &b{reason}\n&f期限: &b{expireAt}\n\n&7這是一個錯誤嗎? 加入我們的&3Discord&7尋求支援!"
+  denied_muted: "&c你已被限制發言!\n&f執行者: &b{executor}\n&f原因: &b{reason}\n&f期限: &b{expireAt}\n\n&7這是一個錯誤嗎? 加入我們的&3Discord&7尋求支援!"
+  no_permission: "&c你沒有權限使用此指令!"
+  player_not_found: "&c找不到玩家: {player}"
+  ban_command_usage: "&c用法: /ban <玩家> [原因]"
+  ban_success: "&a已封鎖 {player}"
+  unban_command_usage: "&c用法: /unban <玩家>"
+  unban_success: "&a已解除封鎖 {player}"
+  mute_command_usage: "&c用法: /mute <玩家> [原因]"
+  mute_success: "&a已限制發言 {player}"
+  unmute_command_usage: "&c用法: /unmute <玩家>"
+  unmute_success: "&a已解除發言限制 {player}"
+  requesting_mojang_api: "&a正在請求Mojang API取得玩家資料..."
