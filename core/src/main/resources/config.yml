@@ -8,6 +8,12 @@ storage:
     database: punish
     username: kanade
     password: cute
+
+punish:
+  cheating:
+    - "ban 30d"
+    - "mute 30d"
+
 message:
   permanent: "永久"
   console: "反作弊/後台"
@@ -23,4 +29,9 @@ message:
   mute_success: "&a已限制發言 {player}"
   unmute_command_usage: "&c用法: /unmute <玩家>"
   unmute_success: "&a已解除發言限制 {player}"
+  punish_command_usage: "&c用法: /punish <玩家> [原因]"
+  punish_executing_action: "&7正在執行 {action}..."
+  punish_success: "&a已對{player}執行處罰: {punish}"
+  punish_action_not_found: "&c找不到處罰動作: {action}"
   requesting_mojang_api: "&a正在請求Mojang API取得玩家資料..."
+  no_reason: "無理由處罰"

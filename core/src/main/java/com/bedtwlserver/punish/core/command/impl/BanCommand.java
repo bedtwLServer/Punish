@@ -26,7 +26,7 @@ public class BanCommand extends CommandBase {
         }
 
         String targetName = args[0];
-        String reason = args.length > 1 ? String.join(" ", Arrays.copyOfRange(args, 1, args.length)) : plugin.getMessage("console");
+        String reason = args.length > 1 ? String.join(" ", Arrays.copyOfRange(args, 1, args.length)) : plugin.getMessage("no_reason");
         String executor = sender.getName();
         Player online = Bukkit.getPlayerExact(targetName);
 
