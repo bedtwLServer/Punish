@@ -51,8 +51,8 @@ public class PunishCommand extends CommandBase {
                 String[] actionArgs = parts.length > 1 ? Arrays.copyOfRange(parts, 1, parts.length) : new String[0];
                 sender.sendMessage(color(plugin.getMessage("punish_executing_action").replace("{action}", actionName)));
                 action.onExecute(Bukkit.getConsoleSender(), target.getName(), target.getUniqueId(), actionArgs);
-                Punish.instance.broadcastPunish(actionName, target);
             }
+            Punish.instance.broadcastPunish(stepName, target);
             sender.sendMessage(color(
                     plugin.getMessage("punish_success")
                             .replace("{player}", target.getName())

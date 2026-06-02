@@ -11,6 +11,7 @@ import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 public class PunishPluginMessageListener implements PluginMessageListener {
@@ -26,26 +27,37 @@ public class PunishPluginMessageListener implements PluginMessageListener {
                 return;
             }
 
-            String actionName = input.readUTF();
+            String stepName = input.readUTF();
             String targetName = input.readUTF();
             UUID targetUuid = UUID.fromString(input.readUTF());
-            int argsLength = input.readInt();
-            String[] args = new String[argsLength];
-            for (int i = 0; i < argsLength; i++) {
-                args[i] = input.readUTF();
-            }
 
-            Player target = Bukkit.getPlayer(targetName);
+            Player target = Bukkit.getPlayerExact(targetName);
             if (target == null) {
                 return;
             }
 
-            PunishAction action = PunishAPI.getPunishActionRegistry().getAction(actionName);
-            if (action == null) {
+            List<String> steps = Punish.getPunishRegistry().getStep(stepName);
+            if (steps == null || steps.isEmpty()) {
                 return;
             }
 
-            action.onExecute(Bukkit.getConsoleSender(), target.getName(), targetUuid, args);
+            Bukkit.getScheduler().runTask(Punish.instance, () -> {
+                for (String step : steps) {
+                    String[] parts = step.split(" ");
+                    if (parts.length == 0) {
+                        continue;
+                    }
+
+                    String actionName = parts[0].toLowerCase();
+                    PunishAction action = PunishAPI.getPunishActionRegistry().getAction(actionName);
+                    if (action == null) {
+                        continue;
+                    }
+
+                    String[] args = parts.length > 1 ? Arrays.copyOfRange(parts, 1, parts.length) : new String[0];
+                    action.onExecute(Bukkit.getConsoleSender(), target.getName(), targetUuid, args);
+                }
+            });
         } catch (IOException ignored) {
         }
     }

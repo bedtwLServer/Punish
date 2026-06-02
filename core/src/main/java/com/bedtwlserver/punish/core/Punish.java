@@ -117,12 +117,12 @@ public class Punish extends JavaPlugin {
         });
     }
 
-    public void broadcastPunish(String actionName, Player target) {
+    public void broadcastPunish(String stepName, Player target) {
         try {
             java.io.ByteArrayOutputStream output = new java.io.ByteArrayOutputStream();
             java.io.DataOutputStream data = new java.io.DataOutputStream(output);
             data.writeUTF("PunishExecute");
-            data.writeUTF(actionName);
+            data.writeUTF(stepName);
             data.writeUTF(target.getName());
             data.writeUTF(target.getUniqueId().toString());
             Bukkit.getServer().sendPluginMessage(this, "BungeeCord", output.toByteArray());
