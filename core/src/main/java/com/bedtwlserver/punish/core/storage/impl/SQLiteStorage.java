@@ -2,6 +2,9 @@ package com.bedtwlserver.punish.core.storage.impl;
 
 import com.bedtwlserver.punish.core.Punish;
 
+import java.sql.SQLException;
+import java.sql.Statement;
+
 public class SQLiteStorage extends JdbcStorage {
     private final String filePath;
 
@@ -54,6 +57,16 @@ public class SQLiteStorage extends JdbcStorage {
     }
 
     @Override
+    protected String getCreatePunishEventTableSql() {
+        return "CREATE TABLE IF NOT EXISTS punish_events (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "step_name TEXT NOT NULL, " +
+                "player_uuid TEXT NOT NULL, " +
+                "player_name TEXT NOT NULL" +
+                ")";
+    }
+
+    @Override
     protected String getBanUpsertSql() {
         return "INSERT OR REPLACE INTO punish_bans (uuid, player_name, reason, executor, expireAt) VALUES (?, ?, ?, ?, ?)";
     }
@@ -61,5 +74,14 @@ public class SQLiteStorage extends JdbcStorage {
     @Override
     protected String getMuteUpsertSql() {
         return "INSERT OR REPLACE INTO punish_mutes (uuid, player_name, reason, executor, expireAt) VALUES (?, ?, ?, ?, ?)";
+    }
+
+    @Override
+    protected void migratePunishEventTable(Statement statement) throws SQLException {
+        try {
+            statement.executeUpdate("ALTER TABLE punish_events ADD COLUMN processed_by TEXT NOT NULL DEFAULT ''");
+        } catch (SQLException ignored) {
+            // already migrated
+        }
     }
 }

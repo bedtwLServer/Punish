@@ -4,13 +4,9 @@ import com.bedtwlserver.punish.api.PunishAPI;
 import com.bedtwlserver.punish.core.action.BanAction;
 import com.bedtwlserver.punish.core.action.MuteAction;
 import com.bedtwlserver.punish.core.command.CommandBase;
-import com.bedtwlserver.punish.core.command.impl.BanCommand;
-import com.bedtwlserver.punish.core.command.impl.PunishCommand;
-import com.bedtwlserver.punish.core.command.impl.MuteCommand;
-import com.bedtwlserver.punish.core.command.impl.UnbanCommand;
-import com.bedtwlserver.punish.core.command.impl.UnmuteCommand;
+import com.bedtwlserver.punish.core.command.impl.*;
 import com.bedtwlserver.punish.core.listener.PlayerEvent;
-import com.bedtwlserver.punish.core.listener.PunishPluginMessageListener;
+import com.bedtwlserver.punish.core.model.PunishEvent;
 import com.bedtwlserver.punish.core.registry.PunishActionRegistry;
 import com.bedtwlserver.punish.core.registry.PunishRegistry;
 import com.bedtwlserver.punish.core.storage.Storage;
@@ -20,7 +16,6 @@ import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class Punish extends JavaPlugin {
@@ -32,6 +27,8 @@ public class Punish extends JavaPlugin {
 
     @Getter
     private static final PunishRegistry punishRegistry = new PunishRegistry();
+    @Getter
+    private String serverId;
 
     @Override
     public void onLoad() {
@@ -45,9 +42,8 @@ public class Punish extends JavaPlugin {
     @Override
     public void onEnable() {
         instance = this;
+        serverId = getConfig().getString("storage.server-id", getName());
         try {
-            Bukkit.getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
-            Bukkit.getMessenger().registerIncomingPluginChannel(this, "BungeeCord", new PunishPluginMessageListener());
             String use = getConfig().getString("storage.use", "sqlite").toLowerCase();
             switch (use) {
                 case "mysql" -> storage = new MySQLStorage(
@@ -75,6 +71,7 @@ public class Punish extends JavaPlugin {
         registerCommand("unban", new UnbanCommand());
         registerCommand("mute", new MuteCommand());
         registerCommand("unmute", new UnmuteCommand());
+        Bukkit.getScheduler().runTaskTimerAsynchronously(this, this::pollPunishEvents, 20L, 20L);
 
     }
 
@@ -117,17 +114,31 @@ public class Punish extends JavaPlugin {
         });
     }
 
-    public void broadcastPunish(String stepName, Player target) {
+    private void pollPunishEvents() {
         try {
-            java.io.ByteArrayOutputStream output = new java.io.ByteArrayOutputStream();
-            java.io.DataOutputStream data = new java.io.DataOutputStream(output);
-            data.writeUTF("PunishExecute");
-            data.writeUTF(stepName);
-            data.writeUTF(target.getName());
-            data.writeUTF(target.getUniqueId().toString());
-            Bukkit.getServer().sendPluginMessage(this, "BungeeCord", output.toByteArray());
+            for (PunishEvent event : storage.getPunishEvents(serverId)) {
+                Bukkit.getScheduler().runTask(this, () -> executePunishEvent(event));
+                storage.markPunishEventProcessed(event.id(), serverId);
+            }
         } catch (Exception e) {
-            getLogger().warning("無法廣播 punish: " + e.getMessage());
+            getLogger().warning("輪詢 punish event 失敗: " + e.getMessage());
+        }
+    }
+
+    private void executePunishEvent(PunishEvent event) {
+        getLogger().info("執行punish...");
+        java.util.List<String> steps = punishRegistry.getStep(event.stepName());
+        if (steps == null || steps.isEmpty()) {
+            return;
+        }
+        for (String step : steps) {
+            getLogger().info("正在執行" + step);
+            String[] parts = step.split(" ");
+            if (parts.length == 0) continue;
+            com.bedtwlserver.punish.api.PunishAction action = PunishAPI.getPunishActionRegistry().getAction(parts[0].toLowerCase());
+            if (action == null) continue;
+            String[] args = parts.length > 1 ? java.util.Arrays.copyOfRange(parts, 1, parts.length) : new String[0];
+            action.onExecute(Bukkit.getConsoleSender(), event.playerName(), event.playerUUID(), args);
         }
     }
 

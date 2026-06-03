@@ -1,4 +1,5 @@
 storage:
+  server-id: server-1
   use: sqlite
   sqlite:
     file: database.db

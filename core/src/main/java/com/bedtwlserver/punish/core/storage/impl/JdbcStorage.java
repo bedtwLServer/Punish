@@ -1,6 +1,7 @@
 package com.bedtwlserver.punish.core.storage.impl;
 
 import com.bedtwlserver.punish.core.model.PunishData;
+import com.bedtwlserver.punish.core.model.PunishEvent;
 import com.bedtwlserver.punish.core.storage.Storage;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -10,6 +11,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 public abstract class JdbcStorage extends Storage {
@@ -36,12 +39,15 @@ public abstract class JdbcStorage extends Storage {
             dataSource = new HikariDataSource(config);
             try (Connection conn = dataSource.getConnection();
                  Statement stmt = conn.createStatement()) {
-                stmt.execute("PRAGMA journal_mode=WAL");
-                stmt.execute("PRAGMA foreign_keys=ON");
+                if (getJdbcUrl().startsWith("jdbc:sqlite:")) {
+                    stmt.execute("PRAGMA journal_mode=WAL");
+                    stmt.execute("PRAGMA foreign_keys=ON");
+                }
                 createTable(conn);
+                migrateTable(conn);
             }
-        } catch (SQLException e) {
-            throw new IllegalStateException("無法連線資料庫", e);
+        } catch (Exception e) {
+            throw new IllegalStateException("無法連線資料庫: " + e.getMessage(), e);
         }
     }
 
@@ -112,6 +118,13 @@ public abstract class JdbcStorage extends Storage {
         try (Statement statement = connection.createStatement()) {
             statement.executeUpdate(getCreateBanTableSql());
             statement.executeUpdate(getCreateMuteTableSql());
+            statement.executeUpdate(getCreatePunishEventTableSql());
+        }
+    }
+
+    private void migrateTable(Connection connection) throws SQLException {
+        try (Statement statement = connection.createStatement()) {
+            migratePunishEventTable(statement);
         }
     }
 
@@ -161,6 +174,64 @@ public abstract class JdbcStorage extends Storage {
         }
     }
 
+    @Override
+    public void addPunishEvent(String stepName, UUID uuid, String playerName) {
+        String sql = "INSERT INTO punish_events (step_name, player_uuid, player_name, processed_by) VALUES (?, ?, ?, '')";
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, stepName);
+            statement.setString(2, uuid.toString());
+            statement.setString(3, playerName);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new IllegalStateException("新增處罰事件失敗", e);
+        }
+    }
+
+    @Override
+    public List<PunishEvent> getPunishEvents(String serverId) {
+        String sql = "SELECT id, step_name, player_uuid, player_name, processed_by FROM punish_events " +
+                "WHERE processed_by NOT LIKE ? ORDER BY id ASC";
+        List<PunishEvent> events = new ArrayList<>();
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, "%" + serverId + "%");
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    events.add(new PunishEvent(
+                            resultSet.getLong("id"),
+                            resultSet.getString("step_name"),
+                            UUID.fromString(resultSet.getString("player_uuid")),
+                            resultSet.getString("player_name"),
+                            resultSet.getString("processed_by")
+                    ));
+                }
+            }
+            return events;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new IllegalStateException("讀取處罰事件失敗", e);
+        }
+    }
+
+    @Override
+    public void markPunishEventProcessed(long id, String serverId) {
+        String sql = "UPDATE punish_events SET processed_by = CASE " +
+                "WHEN processed_by IS NULL OR processed_by = '' THEN ? " +
+                "WHEN processed_by LIKE ? THEN processed_by " +
+                "ELSE processed_by || ',' || ? END WHERE id = ?";
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, serverId);
+            statement.setString(2, "%" + serverId + "%");
+            statement.setString(3, serverId);
+            statement.setLong(4, id);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new IllegalStateException("標記處罰事件失敗", e);
+        }
+    }
+
     protected abstract String getJdbcUrl();
 
     protected String getUsername() {
@@ -202,9 +273,14 @@ public abstract class JdbcStorage extends Storage {
 
     protected abstract String getCreateMuteTableSql();
 
+    protected abstract String getCreatePunishEventTableSql();
+
     protected abstract String getBanUpsertSql();
 
     protected abstract String getMuteUpsertSql();
+
+    protected void migratePunishEventTable(Statement statement) throws SQLException {
+    }
 
     private void loadDriver() {
         String jdbcUrl = getJdbcUrl();
