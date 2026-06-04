@@ -5,6 +5,8 @@ import com.bedtwlserver.punish.core.action.BanAction;
 import com.bedtwlserver.punish.core.action.MuteAction;
 import com.bedtwlserver.punish.core.command.CommandBase;
 import com.bedtwlserver.punish.core.command.impl.*;
+import com.bedtwlserver.punish.core.event.BanEventListener;
+import com.bedtwlserver.punish.core.event.ServerEventRegistryImpl;
 import com.bedtwlserver.punish.core.listener.PlayerEvent;
 import com.bedtwlserver.punish.core.model.PunishEvent;
 import com.bedtwlserver.punish.core.registry.PunishActionRegistry;
@@ -36,6 +38,11 @@ public class Punish extends JavaPlugin {
         PunishAPI.setPunishActionRegistry(new PunishActionRegistry());
         PunishAPI.getPunishActionRegistry().registerAction("ban", new BanAction());
         PunishAPI.getPunishActionRegistry().registerAction("mute", new MuteAction());
+        
+        // 初始化事件註冊表
+        PunishAPI.setServerEventRegistry(new ServerEventRegistryImpl());
+        PunishAPI.getServerEventRegistry().registerListener(new BanEventListener());
+        
         loadPunishActions();
     }
 
