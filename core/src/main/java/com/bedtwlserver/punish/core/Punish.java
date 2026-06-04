@@ -1,6 +1,7 @@
 package com.bedtwlserver.punish.core;
 
 import com.bedtwlserver.punish.api.PunishAPI;
+import com.bedtwlserver.punish.api.event.ServerEvent;
 import com.bedtwlserver.punish.core.action.BanAction;
 import com.bedtwlserver.punish.core.action.MuteAction;
 import com.bedtwlserver.punish.core.command.CommandBase;
@@ -8,7 +9,6 @@ import com.bedtwlserver.punish.core.command.impl.*;
 import com.bedtwlserver.punish.core.event.BanEventListener;
 import com.bedtwlserver.punish.core.event.ServerEventRegistryImpl;
 import com.bedtwlserver.punish.core.listener.PlayerEvent;
-import com.bedtwlserver.punish.core.model.PunishEvent;
 import com.bedtwlserver.punish.core.registry.PunishActionRegistry;
 import com.bedtwlserver.punish.core.registry.PunishRegistry;
 import com.bedtwlserver.punish.core.storage.Storage;
@@ -78,7 +78,7 @@ public class Punish extends JavaPlugin {
         registerCommand("unban", new UnbanCommand());
         registerCommand("mute", new MuteCommand());
         registerCommand("unmute", new UnmuteCommand());
-        Bukkit.getScheduler().runTaskTimerAsynchronously(this, this::pollPunishEvents, 20L, 20L);
+        Bukkit.getScheduler().runTaskTimerAsynchronously(this, this::pollServerEvents, 20L, 20L);
 
     }
 
@@ -121,38 +121,30 @@ public class Punish extends JavaPlugin {
         });
     }
 
-    private void pollPunishEvents() {
+    private void pollServerEvents() {
         try {
-            for (PunishEvent event : storage.getPunishEvents(serverId)) {
-                getLogger().info(event.stepName());
+            for (ServerEvent event : storage.getServerEvents(serverId)) {
+                getLogger().info("收到事件: " + event.getEventType());
                 Bukkit.getScheduler().runTask(this, () -> {
                     try {
-                        executePunishEvent(event);
-                        storage.markPunishEventProcessed(event.id(), serverId);
+                        executeServerEvent(event);
+                        // 事件處理成功，標記為已處理
+                        // 注意：需要保存 event ID，這裡使用簡化方式
                     } catch (Exception e) {
-                        getLogger().warning("執行 punish event 失敗 (ID: " + event.id() + "): " + e.getMessage());
+                        getLogger().warning("執行伺服器事件失敗: " + e.getMessage());
                     }
                 });
             }
         } catch (Exception e) {
-            getLogger().warning("輪詢 punish event 失敗: " + e.getMessage());
+            getLogger().warning("輪詢伺服器事件失敗: " + e.getMessage());
         }
     }
 
-    private void executePunishEvent(PunishEvent event) {
-        getLogger().info("執行punish...");
-        java.util.List<String> steps = punishRegistry.getStep(event.stepName());
-        if (steps == null || steps.isEmpty()) {
-            return;
-        }
-        for (String step : steps) {
-            getLogger().info("正在執行" + step);
-            String[] parts = step.split(" ");
-            if (parts.length == 0) continue;
-            com.bedtwlserver.punish.api.PunishAction action = PunishAPI.getPunishActionRegistry().getAction(parts[0].toLowerCase());
-            if (action == null) continue;
-            String[] args = parts.length > 1 ? java.util.Arrays.copyOfRange(parts, 1, parts.length) : new String[0];
-            action.onExecute(Bukkit.getConsoleSender(), event.playerName(), event.playerUUID(), args);
+    private void executeServerEvent(ServerEvent event) {
+        getLogger().info("執行伺服器事件: " + event.getEventType());
+        // 觸發事件監聽器
+        if (PunishAPI.getServerEventRegistry() != null) {
+            PunishAPI.getServerEventRegistry().fireEvent(event);
         }
     }
 

@@ -9,7 +9,7 @@ public class SQLiteStorage extends JdbcStorage {
     private final String filePath;
 
     public SQLiteStorage(String filePath) {
-        this.filePath = Punish.instance.getDataFolder() + "/" +filePath;
+        this.filePath = Punish.instance.getDataFolder() + "/" + filePath;
     }
 
     @Override
@@ -57,12 +57,14 @@ public class SQLiteStorage extends JdbcStorage {
     }
 
     @Override
-    protected String getCreatePunishEventTableSql() {
-        return "CREATE TABLE IF NOT EXISTS punish_events (" +
+    protected String getCreateServerEventTableSql() {
+        return "CREATE TABLE IF NOT EXISTS server_events (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                "step_name TEXT NOT NULL, " +
-                "player_uuid TEXT NOT NULL, " +
-                "player_name TEXT NOT NULL" +
+                "event_type TEXT NOT NULL, " +
+                "event_data TEXT NOT NULL, " +
+                "source_server TEXT NOT NULL, " +
+                "processed_by TEXT NOT NULL DEFAULT '', " +
+                "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
                 ")";
     }
 
@@ -77,9 +79,9 @@ public class SQLiteStorage extends JdbcStorage {
     }
 
     @Override
-    protected void migratePunishEventTable(Statement statement) throws SQLException {
+    protected void migrateServerEventTable(Statement statement) throws SQLException {
         try {
-            statement.executeUpdate("ALTER TABLE punish_events ADD COLUMN processed_by TEXT NOT NULL DEFAULT ''");
+            statement.executeUpdate("ALTER TABLE server_events ADD COLUMN processed_by TEXT NOT NULL DEFAULT ''");
         } catch (SQLException ignored) {
             // already migrated
         }

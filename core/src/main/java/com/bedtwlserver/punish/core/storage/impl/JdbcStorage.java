@@ -1,8 +1,12 @@
 package com.bedtwlserver.punish.core.storage.impl;
 
+import com.bedtwlserver.punish.api.event.ServerEvent;
+import com.bedtwlserver.punish.core.event.BanServerEvent;
 import com.bedtwlserver.punish.core.model.PunishData;
-import com.bedtwlserver.punish.core.model.PunishEvent;
 import com.bedtwlserver.punish.core.storage.Storage;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
@@ -118,13 +122,13 @@ public abstract class JdbcStorage extends Storage {
         try (Statement statement = connection.createStatement()) {
             statement.executeUpdate(getCreateBanTableSql());
             statement.executeUpdate(getCreateMuteTableSql());
-            statement.executeUpdate(getCreatePunishEventTableSql());
+            statement.executeUpdate(getCreateServerEventTableSql());
         }
     }
 
     private void migrateTable(Connection connection) throws SQLException {
         try (Statement statement = connection.createStatement()) {
-            migratePunishEventTable(statement);
+            migrateServerEventTable(statement);
         }
     }
 
@@ -175,48 +179,49 @@ public abstract class JdbcStorage extends Storage {
     }
 
     @Override
-    public void addPunishEvent(String stepName, UUID uuid, String playerName) {
-        String sql = "INSERT INTO punish_events (step_name, player_uuid, player_name, processed_by) VALUES (?, ?, ?, '')";
+    public void addServerEvent(ServerEvent event) {
+        String sql = "INSERT INTO server_events (event_type, event_data, source_server, processed_by) VALUES (?, ?, ?, '')";
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, stepName);
-            statement.setString(2, uuid.toString());
-            statement.setString(3, playerName);
+            statement.setString(1, event.getEventType());
+            statement.setString(2, event.toJson());
+            statement.setString(3, event.getSourceServer());
             statement.executeUpdate();
         } catch (SQLException e) {
-            throw new IllegalStateException("新增處罰事件失敗", e);
+            throw new IllegalStateException("新增伺服器事件失敗", e);
         }
     }
 
     @Override
-    public List<PunishEvent> getPunishEvents(String serverId) {
-        String sql = "SELECT id, step_name, player_uuid, player_name, processed_by FROM punish_events " +
+    public List<ServerEvent> getServerEvents(String serverId) {
+        String sql = "SELECT id, event_type, event_data, source_server, processed_by FROM server_events " +
                 "WHERE processed_by IS NULL OR processed_by = '' OR processed_by NOT LIKE ? ORDER BY id ASC";
-        List<PunishEvent> events = new ArrayList<>();
+        List<ServerEvent> events = new ArrayList<>();
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, "%" + serverId + "%");
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
-                    events.add(new PunishEvent(
-                            resultSet.getLong("id"),
-                            resultSet.getString("step_name"),
-                            UUID.fromString(resultSet.getString("player_uuid")),
-                            resultSet.getString("player_name"),
-                            resultSet.getString("processed_by")
-                    ));
+                    String eventType = resultSet.getString("event_type");
+                    String eventData = resultSet.getString("event_data");
+                    long id = resultSet.getLong("id");
+                    
+                    ServerEvent event = deserializeEvent(eventType, eventData);
+                    if (event != null) {
+                        events.add(event);
+                    }
                 }
             }
             return events;
         } catch (SQLException e) {
             e.printStackTrace();
-            throw new IllegalStateException("讀取處罰事件失敗", e);
+            throw new IllegalStateException("讀取伺服器事件失敗", e);
         }
     }
 
     @Override
-    public void markPunishEventProcessed(long id, String serverId) {
-        String sql = "UPDATE punish_events SET processed_by = CASE " +
+    public void markServerEventProcessed(long id, String serverId) {
+        String sql = "UPDATE server_events SET processed_by = CASE " +
                 "WHEN processed_by IS NULL OR processed_by = '' THEN ? " +
                 "WHEN processed_by LIKE ? THEN processed_by " +
                 "ELSE processed_by || ',' || ? END WHERE id = ?";
@@ -228,8 +233,27 @@ public abstract class JdbcStorage extends Storage {
             statement.setLong(4, id);
             statement.executeUpdate();
         } catch (SQLException e) {
-            throw new IllegalStateException("標記處罰事件失敗", e);
+            throw new IllegalStateException("標記伺服器事件失敗", e);
         }
+    }
+
+    private ServerEvent deserializeEvent(String eventType, String eventData) {
+        try {
+            if ("ban".equals(eventType)) {
+                JsonObject json = JsonParser.parseString(eventData).getAsJsonObject();
+                return new BanServerEvent(
+                        json.get("source_server").getAsString(),
+                        UUID.fromString(json.get("player_uuid").getAsString()),
+                        json.get("player_name").getAsString(),
+                        json.get("executor").getAsString(),
+                        json.get("reason").getAsString(),
+                        json.get("expire_time").getAsLong()
+                );
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     protected abstract String getJdbcUrl();
@@ -273,13 +297,13 @@ public abstract class JdbcStorage extends Storage {
 
     protected abstract String getCreateMuteTableSql();
 
-    protected abstract String getCreatePunishEventTableSql();
+    protected abstract String getCreateServerEventTableSql();
 
     protected abstract String getBanUpsertSql();
 
     protected abstract String getMuteUpsertSql();
 
-    protected void migratePunishEventTable(Statement statement) throws SQLException {
+    protected void migrateServerEventTable(Statement statement) throws SQLException {
     }
 
     private void loadDriver() {

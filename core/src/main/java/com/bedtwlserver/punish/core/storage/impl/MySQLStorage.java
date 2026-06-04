@@ -89,13 +89,14 @@ public class MySQLStorage extends JdbcStorage {
     }
 
     @Override
-    protected String getCreatePunishEventTableSql() {
-        return "CREATE TABLE IF NOT EXISTS punish_events (" +
+    protected String getCreateServerEventTableSql() {
+        return "CREATE TABLE IF NOT EXISTS server_events (" +
                 "id BIGINT AUTO_INCREMENT PRIMARY KEY, " +
-                "step_name VARCHAR(64) NOT NULL, " +
-                "player_uuid VARCHAR(36) NOT NULL, " +
-                "player_name VARCHAR(16) NOT NULL, " +
-                "processed_by TEXT NOT NULL DEFAULT ''" +
+                "event_type VARCHAR(64) NOT NULL, " +
+                "event_data LONGTEXT NOT NULL, " +
+                "source_server VARCHAR(64) NOT NULL, " +
+                "processed_by TEXT NOT NULL DEFAULT '', " +
+                "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
                 ")";
     }
 
@@ -112,9 +113,9 @@ public class MySQLStorage extends JdbcStorage {
     }
 
     @Override
-    protected void migratePunishEventTable(Statement statement) throws SQLException {
+    protected void migrateServerEventTable(Statement statement) throws SQLException {
         try {
-            statement.executeUpdate("ALTER TABLE punish_events ADD COLUMN processed_by TEXT NOT NULL DEFAULT ''");
+            statement.executeUpdate("ALTER TABLE server_events ADD COLUMN processed_by TEXT NOT NULL DEFAULT ''");
         } catch (SQLException ignored) {
             // already migrated
         }
