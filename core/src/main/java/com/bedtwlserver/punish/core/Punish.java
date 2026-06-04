@@ -117,8 +117,15 @@ public class Punish extends JavaPlugin {
     private void pollPunishEvents() {
         try {
             for (PunishEvent event : storage.getPunishEvents(serverId)) {
-                Bukkit.getScheduler().runTask(this, () -> executePunishEvent(event));
-                storage.markPunishEventProcessed(event.id(), serverId);
+                getLogger().info(event.stepName());
+                Bukkit.getScheduler().runTask(this, () -> {
+                    try {
+                        executePunishEvent(event);
+                        storage.markPunishEventProcessed(event.id(), serverId);
+                    } catch (Exception e) {
+                        getLogger().warning("執行 punish event 失敗 (ID: " + event.id() + "): " + e.getMessage());
+                    }
+                });
             }
         } catch (Exception e) {
             getLogger().warning("輪詢 punish event 失敗: " + e.getMessage());

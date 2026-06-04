@@ -191,7 +191,7 @@ public abstract class JdbcStorage extends Storage {
     @Override
     public List<PunishEvent> getPunishEvents(String serverId) {
         String sql = "SELECT id, step_name, player_uuid, player_name, processed_by FROM punish_events " +
-                "WHERE processed_by NOT LIKE ? ORDER BY id ASC";
+                "WHERE processed_by IS NULL OR processed_by = '' OR processed_by NOT LIKE ? ORDER BY id ASC";
         List<PunishEvent> events = new ArrayList<>();
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {

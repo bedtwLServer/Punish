@@ -94,7 +94,8 @@ public class MySQLStorage extends JdbcStorage {
                 "id BIGINT AUTO_INCREMENT PRIMARY KEY, " +
                 "step_name VARCHAR(64) NOT NULL, " +
                 "player_uuid VARCHAR(36) NOT NULL, " +
-                "player_name VARCHAR(16) NOT NULL" +
+                "player_name VARCHAR(16) NOT NULL, " +
+                "processed_by TEXT NOT NULL DEFAULT ''" +
                 ")";
     }
 
