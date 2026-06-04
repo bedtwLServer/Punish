@@ -4,6 +4,7 @@ import com.bedtwlserver.punish.api.PunishAPI;
 import com.bedtwlserver.punish.api.PunishAction;
 import com.bedtwlserver.punish.core.Punish;
 import com.bedtwlserver.punish.core.command.CommandBase;
+import com.bedtwlserver.punish.core.event.PunishStepServerEvent;
 import com.bedtwlserver.punish.core.model.MojangProfile;
 import com.bedtwlserver.punish.core.util.MojangApiUtil;
 import org.bukkit.Bukkit;
@@ -60,38 +61,22 @@ public class PunishCommand extends CommandBase {
             return;
         }
 
-        for (String step : steps) {
-            String[] parts = step.split(" ");
-            if (parts.length == 0) {
-                continue;
-            }
-
-            String actionName = parts[0].toLowerCase();
-
-            PunishAction action =
-                    PunishAPI.getPunishActionRegistry().getAction(actionName);
-
-            if (action == null) {
-                sender.sendMessage(color(
-                        plugin.getMessage("punish_action_not_found")
-                                .replace("{action}", actionName)
-                ));
-                continue;
-            }
-
-            String[] actionArgs = parts.length > 1
-                    ? Arrays.copyOfRange(parts, 1, parts.length)
-                    : new String[0];
-
-            sender.sendMessage(color(
-                    plugin.getMessage("punish_executing_action")
-                            .replace("{action}", actionName)
-            ));
-
-            action.onExecute(Bukkit.getConsoleSender(), playerName, playerUuid, actionArgs);
+        // 創建懲罰步驟事件
+        PunishStepServerEvent event = new PunishStepServerEvent(
+                Punish.instance.getServerId(),
+                stepName,
+                playerUuid,
+                playerName,
+                sender.getName()
+        );
+        
+        // 添加事件到資料庫，以便其他伺服器也能執行
+        Punish.getStorage().addServerEvent(event);
+        
+        // 立即在本伺服器執行該事件
+        if (PunishAPI.getServerEventRegistry() != null) {
+            PunishAPI.getServerEventRegistry().fireEvent(event);
         }
-
-        Punish.getStorage().addPunishEvent(stepName, playerUuid, playerName);
 
         sender.sendMessage(color(plugin.getMessage("punish_success")
                         .replace("{player}", playerName)

@@ -2,6 +2,7 @@ package com.bedtwlserver.punish.core.storage.impl;
 
 import com.bedtwlserver.punish.api.event.ServerEvent;
 import com.bedtwlserver.punish.core.event.BanServerEvent;
+import com.bedtwlserver.punish.core.event.PunishStepServerEvent;
 import com.bedtwlserver.punish.core.model.PunishData;
 import com.bedtwlserver.punish.core.storage.Storage;
 import com.google.gson.JsonElement;
@@ -202,11 +203,11 @@ public abstract class JdbcStorage extends Storage {
             statement.setString(1, "%" + serverId + "%");
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
+                    long id = resultSet.getLong("id");
                     String eventType = resultSet.getString("event_type");
                     String eventData = resultSet.getString("event_data");
-                    long id = resultSet.getLong("id");
                     
-                    ServerEvent event = deserializeEvent(eventType, eventData);
+                    ServerEvent event = deserializeEvent(id, eventType, eventData);
                     if (event != null) {
                         events.add(event);
                     }
@@ -237,10 +238,11 @@ public abstract class JdbcStorage extends Storage {
         }
     }
 
-    private ServerEvent deserializeEvent(String eventType, String eventData) {
+    private ServerEvent deserializeEvent(long id, String eventType, String eventData) {
         try {
+            JsonObject json = JsonParser.parseString(eventData).getAsJsonObject();
+            
             if ("ban".equals(eventType)) {
-                JsonObject json = JsonParser.parseString(eventData).getAsJsonObject();
                 return new BanServerEvent(
                         json.get("source_server").getAsString(),
                         UUID.fromString(json.get("player_uuid").getAsString()),
@@ -248,6 +250,16 @@ public abstract class JdbcStorage extends Storage {
                         json.get("executor").getAsString(),
                         json.get("reason").getAsString(),
                         json.get("expire_time").getAsLong()
+                );
+            } else if ("punish_step".equals(eventType)) {
+                return new PunishStepServerEvent(
+                        id,
+                        json.get("source_server").getAsString(),
+                        json.get("step_name").getAsString(),
+                        UUID.fromString(json.get("player_uuid").getAsString()),
+                        json.get("player_name").getAsString(),
+                        json.get("executor").getAsString(),
+                        json.get("timestamp").getAsLong()
                 );
             }
         } catch (Exception e) {

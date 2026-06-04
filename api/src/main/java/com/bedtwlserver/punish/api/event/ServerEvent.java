@@ -29,6 +29,14 @@ public interface ServerEvent {
     long getTimestamp();
     
     /**
+     * 獲取事件 ID（用於追蹤和標記為已處理）
+     * 如果事件尚未保存到資料庫，返回 0
+     */
+    default long getId() {
+        return 0;
+    }
+    
+    /**
      * 序列化事件為 JSON 字符串（用於存儲和傳輸）
      */
     String toJson();

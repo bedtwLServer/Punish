@@ -7,6 +7,7 @@ import com.bedtwlserver.punish.core.action.MuteAction;
 import com.bedtwlserver.punish.core.command.CommandBase;
 import com.bedtwlserver.punish.core.command.impl.*;
 import com.bedtwlserver.punish.core.event.BanEventListener;
+import com.bedtwlserver.punish.core.event.PunishStepEventListener;
 import com.bedtwlserver.punish.core.event.ServerEventRegistryImpl;
 import com.bedtwlserver.punish.core.listener.PlayerEvent;
 import com.bedtwlserver.punish.core.registry.PunishActionRegistry;
@@ -42,6 +43,7 @@ public class Punish extends JavaPlugin {
         // 初始化事件註冊表
         PunishAPI.setServerEventRegistry(new ServerEventRegistryImpl());
         PunishAPI.getServerEventRegistry().registerListener(new BanEventListener());
+        PunishAPI.getServerEventRegistry().registerListener(new PunishStepEventListener());
         
         loadPunishActions();
     }
@@ -124,14 +126,18 @@ public class Punish extends JavaPlugin {
     private void pollServerEvents() {
         try {
             for (ServerEvent event : storage.getServerEvents(serverId)) {
-                getLogger().info("收到事件: " + event.getEventType());
+                getLogger().info("收到事件: " + event.getEventType() + " (ID: " + event.getId() + ")");
                 Bukkit.getScheduler().runTask(this, () -> {
                     try {
                         executeServerEvent(event);
-                        // 事件處理成功，標記為已處理
-                        // 注意：需要保存 event ID，這裡使用簡化方式
+                        // 標記事件為已處理
+                        if (event.getId() > 0) {
+                            storage.markServerEventProcessed(event.getId(), serverId);
+                            getLogger().info("已標記事件為已處理 (ID: " + event.getId() + ")");
+                        }
                     } catch (Exception e) {
                         getLogger().warning("執行伺服器事件失敗: " + e.getMessage());
+                        e.printStackTrace();
                     }
                 });
             }
