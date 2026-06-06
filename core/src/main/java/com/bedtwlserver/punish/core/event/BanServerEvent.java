@@ -10,7 +10,7 @@ import java.util.UUID;
  * 當一個玩家被 ban 時觸發
  */
 public class BanServerEvent implements ServerEvent {
-    
+
     private final String sourceServer;
     private final UUID playerUUID;
     private final String playerName;
@@ -18,9 +18,9 @@ public class BanServerEvent implements ServerEvent {
     private final String reason;
     private final long expireTime;
     private final long timestamp;
-    
-    public BanServerEvent(String sourceServer, UUID playerUUID, String playerName, 
-                         String executor, String reason, long expireTime) {
+
+    public BanServerEvent(String sourceServer, UUID playerUUID, String playerName,
+                          String executor, String reason, long expireTime) {
         this.sourceServer = sourceServer;
         this.playerUUID = playerUUID;
         this.playerName = playerName;
@@ -29,43 +29,43 @@ public class BanServerEvent implements ServerEvent {
         this.expireTime = expireTime;
         this.timestamp = System.currentTimeMillis();
     }
-    
+
     @Override
     public String getEventType() {
         return "ban";
     }
-    
+
     @Override
     public String getSourceServer() {
         return sourceServer;
     }
-    
+
     @Override
     public UUID getPlayerUUID() {
         return playerUUID;
     }
-    
+
     @Override
     public long getTimestamp() {
         return timestamp;
     }
-    
+
     public String getPlayerName() {
         return playerName;
     }
-    
+
     public String getExecutor() {
         return executor;
     }
-    
+
     public String getReason() {
         return reason;
     }
-    
+
     public long getExpireTime() {
         return expireTime;
     }
-    
+
     @Override
     public String toJson() {
         JsonObject json = new JsonObject();

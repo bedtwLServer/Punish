@@ -1,7 +1,7 @@
 package com.bedtwlserver.punish.core.action;
 
-import com.bedtwlserver.punish.api.PunishAction;
 import com.bedtwlserver.punish.api.PunishAPI;
+import com.bedtwlserver.punish.api.PunishAction;
 import com.bedtwlserver.punish.core.Punish;
 import com.bedtwlserver.punish.core.cache.CacheManager;
 import com.bedtwlserver.punish.core.event.BanServerEvent;

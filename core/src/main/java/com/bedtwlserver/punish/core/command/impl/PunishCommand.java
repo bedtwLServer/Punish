@@ -1,7 +1,6 @@
 package com.bedtwlserver.punish.core.command.impl;
 
 import com.bedtwlserver.punish.api.PunishAPI;
-import com.bedtwlserver.punish.api.PunishAction;
 import com.bedtwlserver.punish.core.Punish;
 import com.bedtwlserver.punish.core.command.CommandBase;
 import com.bedtwlserver.punish.core.event.PunishStepServerEvent;
@@ -12,7 +11,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jspecify.annotations.NonNull;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -74,18 +72,18 @@ public class PunishCommand extends CommandBase {
                 playerName,
                 sender.getName()
         );
-        
+
         // 添加事件到資料庫，以便其他伺服器也能執行
         Punish.getStorage().addServerEvent(event);
-        
+
         // 立即在本伺服器執行該事件
         if (PunishAPI.getServerEventRegistry() != null) {
             PunishAPI.getServerEventRegistry().fireEvent(event);
         }
 
         sender.sendMessage(color(plugin.getMessage("punish_success")
-                        .replace("{player}", playerName)
-                        .replace("{punish}", stepName)
+                .replace("{player}", playerName)
+                .replace("{punish}", stepName)
         ));
     }
 

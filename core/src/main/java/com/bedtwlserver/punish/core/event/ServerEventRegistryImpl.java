@@ -12,9 +12,9 @@ import java.util.stream.Collectors;
  * 伺服器事件註冊表實現
  */
 public class ServerEventRegistryImpl implements ServerEventRegistry {
-    
+
     private final List<ServerEventListener> listeners = new ArrayList<>();
-    
+
     @Override
     public void registerListener(ServerEventListener listener) {
         for (ServerEventListener existing : listeners) {
@@ -24,12 +24,12 @@ public class ServerEventRegistryImpl implements ServerEventRegistry {
         }
         listeners.add(listener);
     }
-    
+
     @Override
     public void unregisterListener(ServerEventListener listener) {
         listeners.remove(listener);
     }
-    
+
     @Override
     public void fireEvent(ServerEvent event) {
         List<ServerEventListener> targetListeners = getListeners(event.getEventType());
@@ -41,12 +41,12 @@ public class ServerEventRegistryImpl implements ServerEventRegistry {
             }
         }
     }
-    
+
     @Override
     public List<ServerEventListener> getListeners() {
         return new ArrayList<>(listeners);
     }
-    
+
     @Override
     public List<ServerEventListener> getListeners(String eventType) {
         return listeners.stream()

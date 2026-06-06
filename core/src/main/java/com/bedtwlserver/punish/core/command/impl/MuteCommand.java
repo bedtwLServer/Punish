@@ -1,7 +1,7 @@
 package com.bedtwlserver.punish.core.command.impl;
 
-import com.bedtwlserver.punish.core.Punish;
 import com.bedtwlserver.punish.api.PunishAPI;
+import com.bedtwlserver.punish.core.Punish;
 import com.bedtwlserver.punish.core.cache.CacheManager;
 import com.bedtwlserver.punish.core.command.CommandBase;
 import com.bedtwlserver.punish.core.event.CacheUpdateServerEvent;

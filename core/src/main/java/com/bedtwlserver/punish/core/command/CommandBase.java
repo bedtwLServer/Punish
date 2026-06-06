@@ -1,12 +1,10 @@
 package com.bedtwlserver.punish.core.command;
 
 import com.bedtwlserver.punish.core.Punish;
-import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
-import org.bukkit.entity.Player;
 import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
@@ -17,6 +15,7 @@ public abstract class CommandBase implements CommandExecutor, TabCompleter {
     protected Punish plugin = Punish.instance;
 
     protected abstract void execute(@NonNull CommandSender sender, @NonNull String label, String @NonNull [] args);
+
     protected abstract List<String> getTabCompletions(@NonNull CommandSender sender, String @NonNull [] args);
 
     @Override

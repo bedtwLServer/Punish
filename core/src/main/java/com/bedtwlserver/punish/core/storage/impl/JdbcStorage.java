@@ -7,17 +7,12 @@ import com.bedtwlserver.punish.core.event.MuteServerEvent;
 import com.bedtwlserver.punish.core.event.PunishStepServerEvent;
 import com.bedtwlserver.punish.core.model.PunishData;
 import com.bedtwlserver.punish.core.storage.Storage;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -288,7 +283,7 @@ public abstract class JdbcStorage extends Storage {
     private ServerEvent deserializeEvent(long id, String eventType, String eventData) {
         try {
             JsonObject json = JsonParser.parseString(eventData).getAsJsonObject();
-            
+
             if ("ban".equals(eventType)) {
                 return new BanServerEvent(
                         json.get("source_server").getAsString(),

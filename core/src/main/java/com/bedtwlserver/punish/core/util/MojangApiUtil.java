@@ -1,13 +1,13 @@
 package com.bedtwlserver.punish.core.util;
 
+import com.bedtwlserver.punish.core.model.MojangProfile;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.bedtwlserver.punish.core.model.MojangProfile;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-import java.io.StringReader;
 import java.io.IOException;
+import java.io.StringReader;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;

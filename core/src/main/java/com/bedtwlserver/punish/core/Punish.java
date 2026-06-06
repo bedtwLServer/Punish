@@ -7,11 +7,7 @@ import com.bedtwlserver.punish.core.action.MuteAction;
 import com.bedtwlserver.punish.core.cache.CacheManager;
 import com.bedtwlserver.punish.core.command.CommandBase;
 import com.bedtwlserver.punish.core.command.impl.*;
-import com.bedtwlserver.punish.core.event.BanEventListener;
-import com.bedtwlserver.punish.core.event.CacheUpdateEventListener;
-import com.bedtwlserver.punish.core.event.MuteEventListener;
-import com.bedtwlserver.punish.core.event.PunishStepEventListener;
-import com.bedtwlserver.punish.core.event.ServerEventRegistryImpl;
+import com.bedtwlserver.punish.core.event.*;
 import com.bedtwlserver.punish.core.listener.PlayerEvent;
 import com.bedtwlserver.punish.core.registry.PunishActionRegistry;
 import com.bedtwlserver.punish.core.registry.PunishRegistry;
@@ -26,13 +22,11 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class Punish extends JavaPlugin {
 
-    public static Punish instance;
-
-    @Getter
-    private static Storage storage;
-
     @Getter
     private static final PunishRegistry punishRegistry = new PunishRegistry();
+    public static Punish instance;
+    @Getter
+    private static Storage storage;
     @Getter
     private String serverId;
 
@@ -52,14 +46,14 @@ public class Punish extends JavaPlugin {
         PunishAPI.setPunishActionRegistry(new PunishActionRegistry());
         PunishAPI.getPunishActionRegistry().registerAction("ban", new BanAction());
         PunishAPI.getPunishActionRegistry().registerAction("mute", new MuteAction());
-        
+
         // 初始化事件註冊表
         PunishAPI.setServerEventRegistry(new ServerEventRegistryImpl());
         PunishAPI.getServerEventRegistry().registerListener(new BanEventListener());
         PunishAPI.getServerEventRegistry().registerListener(new PunishStepEventListener());
         PunishAPI.getServerEventRegistry().registerListener(new MuteEventListener());
         PunishAPI.getServerEventRegistry().registerListener(new CacheUpdateEventListener());
-        
+
         loadPunishActions();
     }
 

@@ -11,10 +11,6 @@ import java.util.UUID;
  */
 public class CacheUpdateServerEvent implements ServerEvent {
 
-    public enum Action {
-        ADD_BAN, REMOVE_BAN, ADD_MUTE, REMOVE_MUTE
-    }
-
     private final String sourceServer;
     private final Action action;
     private final UUID playerUUID;
@@ -23,9 +19,8 @@ public class CacheUpdateServerEvent implements ServerEvent {
     private final String reason;
     private final long expireTime;
     private final long timestamp;
-
     public CacheUpdateServerEvent(String sourceServer, Action action, UUID playerUUID,
-                                   String playerName, String executor, String reason, long expireTime) {
+                                  String playerName, String executor, String reason, long expireTime) {
         this.sourceServer = sourceServer;
         this.action = action;
         this.playerUUID = playerUUID;
@@ -34,6 +29,15 @@ public class CacheUpdateServerEvent implements ServerEvent {
         this.reason = reason;
         this.expireTime = expireTime;
         this.timestamp = System.currentTimeMillis();
+    }
+
+    public static CacheUpdateServerEvent fromJson(String sourceServer, UUID playerUUID, JsonObject json) {
+        Action action = Action.valueOf(json.get("action").getAsString());
+        String playerName = json.get("player_name").getAsString();
+        String executor = json.get("executor").getAsString();
+        String reason = json.get("reason").getAsString();
+        long expireTime = json.get("expire_time").getAsLong();
+        return new CacheUpdateServerEvent(sourceServer, action, playerUUID, playerName, executor, reason, expireTime);
     }
 
     public Action getAction() {
@@ -90,12 +94,7 @@ public class CacheUpdateServerEvent implements ServerEvent {
         return json.toString();
     }
 
-    public static CacheUpdateServerEvent fromJson(String sourceServer, UUID playerUUID, JsonObject json) {
-        Action action = Action.valueOf(json.get("action").getAsString());
-        String playerName = json.get("player_name").getAsString();
-        String executor = json.get("executor").getAsString();
-        String reason = json.get("reason").getAsString();
-        long expireTime = json.get("expire_time").getAsLong();
-        return new CacheUpdateServerEvent(sourceServer, action, playerUUID, playerName, executor, reason, expireTime);
+    public enum Action {
+        ADD_BAN, REMOVE_BAN, ADD_MUTE, REMOVE_MUTE
     }
 }

@@ -19,7 +19,7 @@ public class MuteServerEvent implements ServerEvent {
     private final long timestamp;
 
     public MuteServerEvent(String sourceServer, UUID playerUUID, String playerName,
-                          String executor, String reason, long expireTime) {
+                           String executor, String reason, long expireTime) {
         this.sourceServer = sourceServer;
         this.playerUUID = playerUUID;
         this.playerName = playerName;
