@@ -19,6 +19,11 @@ import java.util.UUID;
 public class PunishCommand extends CommandBase {
     @Override
     protected void execute(@NonNull CommandSender sender, @NonNull String label, String @NonNull [] args) {
+        if (!sender.hasPermission("punish.punish")) {
+            sender.sendMessage(color(plugin.getMessage("no_permission")));
+            return;
+        }
+
         if (args.length < 2) {
             sender.sendMessage(color(plugin.getMessage("punish_command_usage")));
             return;
@@ -86,6 +91,15 @@ public class PunishCommand extends CommandBase {
 
     @Override
     protected List<String> getTabCompletions(@NonNull CommandSender sender, String @NonNull [] args) {
+        if (args.length == 1) {
+            return null;
+        }
+        if (args.length == 2) {
+            String input = args[1].toLowerCase();
+            return Punish.getPunishRegistry().getStepNames().stream()
+                    .filter(name -> name.startsWith(input))
+                    .toList();
+        }
         return List.of();
     }
 }

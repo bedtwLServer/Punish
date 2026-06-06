@@ -2,8 +2,10 @@ package com.bedtwlserver.punish.core.command.impl;
 
 import com.bedtwlserver.punish.core.Punish;
 import com.bedtwlserver.punish.api.PunishAPI;
+import com.bedtwlserver.punish.core.cache.CacheManager;
 import com.bedtwlserver.punish.core.command.CommandBase;
 import com.bedtwlserver.punish.core.event.BanServerEvent;
+import com.bedtwlserver.punish.core.event.CacheUpdateServerEvent;
 import com.bedtwlserver.punish.core.model.MojangProfile;
 import com.bedtwlserver.punish.core.util.MojangApiUtil;
 import org.bukkit.Bukkit;
@@ -52,9 +54,21 @@ public class BanCommand extends CommandBase {
     }
 
     private void applyBan(CommandSender sender, String playerName, java.util.UUID uuid, String executor, String reason) {
+        // 寫入資料庫
         Punish.getStorage().addBan(uuid, playerName, executor, reason, -1L);
 
-        // 創建並觸發跨服 Ban 事件
+        // 更新快取
+        CacheManager.putBan(uuid, new com.bedtwlserver.punish.core.model.PunishData(playerName, uuid, reason, executor, -1L));
+
+        // 通知其他伺服器更新快取
+        CacheUpdateServerEvent cacheEvent = new CacheUpdateServerEvent(
+                Punish.instance.getServerId(),
+                CacheUpdateServerEvent.Action.ADD_BAN,
+                uuid, playerName, executor, reason, -1L
+        );
+        Punish.getStorage().addServerEvent(cacheEvent);
+
+        // 觸發跨服 Ban 事件（BanEventListener 會處理踢出）
         BanServerEvent banEvent = new BanServerEvent(
                 Punish.instance.getServerId(),
                 uuid,
@@ -67,13 +81,6 @@ public class BanCommand extends CommandBase {
             PunishAPI.getServerEventRegistry().fireEvent(banEvent);
         }
 
-        Player online = Bukkit.getPlayer(uuid);
-        if (online != null) {
-            online.kickPlayer(color(plugin.getMessage("denied_banned")
-                    .replace("{expireAt}", plugin.getMessage("permanent"))
-                    .replace("{executor}", executor)
-                    .replace("{reason}", reason)));
-        }
         sender.sendMessage(color(
                 plugin.getMessage("ban_success").replace("{player}", playerName)
         ));
@@ -81,6 +88,9 @@ public class BanCommand extends CommandBase {
 
     @Override
     protected List<String> getTabCompletions(@NonNull CommandSender sender, String @NonNull [] args) {
+        if (args.length == 1) {
+            return null;
+        }
         return List.of();
     }
 }

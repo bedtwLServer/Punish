@@ -18,4 +18,8 @@ public class PunishRegistry {
     public List<String> getStep(String name) {
         return steps.get(name.toLowerCase());
     }
+
+    public java.util.Set<String> getStepNames() {
+        return steps.keySet();
+    }
 }

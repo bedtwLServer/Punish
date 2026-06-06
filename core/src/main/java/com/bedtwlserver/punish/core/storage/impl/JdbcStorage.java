@@ -111,6 +111,39 @@ public abstract class JdbcStorage extends Storage {
     }
 
     @Override
+    public Map<UUID, PunishData> loadAllBans() {
+        return loadAll(getBanTableName());
+    }
+
+    @Override
+    public Map<UUID, PunishData> loadAllMutes() {
+        return loadAll(getMuteTableName());
+    }
+
+    private Map<UUID, PunishData> loadAll(String tableName) {
+        Map<UUID, PunishData> result = new java.util.HashMap<>();
+        String sql = "SELECT player_name, uuid, reason, executor, expireAt FROM " + tableName;
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql);
+             ResultSet resultSet = statement.executeQuery()) {
+            while (resultSet.next()) {
+                UUID uuid = UUID.fromString(resultSet.getString("uuid"));
+                PunishData data = new PunishData(
+                        resultSet.getString("player_name"),
+                        uuid,
+                        resultSet.getString("reason"),
+                        resultSet.getString("executor"),
+                        resultSet.getLong("expireAt")
+                );
+                result.put(uuid, data);
+            }
+        } catch (SQLException e) {
+            throw new IllegalStateException("載入快取資料失敗: " + tableName, e);
+        }
+        return result;
+    }
+
+    @Override
     public void disconnect() {
         if (dataSource == null) {
             return;
@@ -196,17 +229,22 @@ public abstract class JdbcStorage extends Storage {
     @Override
     public List<ServerEvent> getServerEvents(String serverId) {
         String sql = "SELECT id, event_type, event_data, source_server, processed_by FROM server_events " +
-                "WHERE processed_by IS NULL OR processed_by = '' OR processed_by NOT LIKE ? ORDER BY id ASC";
+                "WHERE processed_by IS NULL OR processed_by = '' OR " +
+                "(processed_by != ? AND processed_by NOT LIKE ? AND processed_by NOT LIKE ? AND processed_by NOT LIKE ?) " +
+                "ORDER BY id ASC";
         List<ServerEvent> events = new ArrayList<>();
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, "%" + serverId + "%");
+            statement.setString(1, serverId);
+            statement.setString(2, serverId + ",%");
+            statement.setString(3, "%," + serverId);
+            statement.setString(4, "%," + serverId + ",%");
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
                     long id = resultSet.getLong("id");
                     String eventType = resultSet.getString("event_type");
                     String eventData = resultSet.getString("event_data");
-                    
+
                     ServerEvent event = deserializeEvent(id, eventType, eventData);
                     if (event != null) {
                         events.add(event);
@@ -224,14 +262,20 @@ public abstract class JdbcStorage extends Storage {
     public void markServerEventProcessed(long id, String serverId) {
         String sql = "UPDATE server_events SET processed_by = CASE " +
                 "WHEN processed_by IS NULL OR processed_by = '' THEN ? " +
+                "WHEN processed_by = ? THEN processed_by " +
+                "WHEN processed_by LIKE ? THEN processed_by " +
+                "WHEN processed_by LIKE ? THEN processed_by " +
                 "WHEN processed_by LIKE ? THEN processed_by " +
                 "ELSE processed_by || ',' || ? END WHERE id = ?";
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, serverId);
-            statement.setString(2, "%" + serverId + "%");
-            statement.setString(3, serverId);
-            statement.setLong(4, id);
+            statement.setString(2, serverId);
+            statement.setString(3, serverId + ",%");
+            statement.setString(4, "%," + serverId);
+            statement.setString(5, "%," + serverId + ",%");
+            statement.setString(6, serverId);
+            statement.setLong(7, id);
             statement.executeUpdate();
         } catch (SQLException e) {
             throw new IllegalStateException("標記伺服器事件失敗", e);
@@ -251,6 +295,15 @@ public abstract class JdbcStorage extends Storage {
                         json.get("reason").getAsString(),
                         json.get("expire_time").getAsLong()
                 );
+            } else if ("mute".equals(eventType)) {
+                return new MuteServerEvent(
+                        json.get("source_server").getAsString(),
+                        UUID.fromString(json.get("player_uuid").getAsString()),
+                        json.get("player_name").getAsString(),
+                        json.get("executor").getAsString(),
+                        json.get("reason").getAsString(),
+                        json.get("expire_time").getAsLong()
+                );
             } else if ("punish_step".equals(eventType)) {
                 return new PunishStepServerEvent(
                         id,
@@ -260,6 +313,12 @@ public abstract class JdbcStorage extends Storage {
                         json.get("player_name").getAsString(),
                         json.get("executor").getAsString(),
                         json.get("timestamp").getAsLong()
+                );
+            } else if ("cache_update".equals(eventType)) {
+                return CacheUpdateServerEvent.fromJson(
+                        json.get("source_server").getAsString(),
+                        UUID.fromString(json.get("player_uuid").getAsString()),
+                        json
                 );
             }
         } catch (Exception e) {

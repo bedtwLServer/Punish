@@ -4,9 +4,12 @@ import com.bedtwlserver.punish.api.PunishAPI;
 import com.bedtwlserver.punish.api.event.ServerEvent;
 import com.bedtwlserver.punish.core.action.BanAction;
 import com.bedtwlserver.punish.core.action.MuteAction;
+import com.bedtwlserver.punish.core.cache.CacheManager;
 import com.bedtwlserver.punish.core.command.CommandBase;
 import com.bedtwlserver.punish.core.command.impl.*;
 import com.bedtwlserver.punish.core.event.BanEventListener;
+import com.bedtwlserver.punish.core.event.CacheUpdateEventListener;
+import com.bedtwlserver.punish.core.event.MuteEventListener;
 import com.bedtwlserver.punish.core.event.PunishStepEventListener;
 import com.bedtwlserver.punish.core.event.ServerEventRegistryImpl;
 import com.bedtwlserver.punish.core.listener.PlayerEvent;
@@ -44,6 +47,8 @@ public class Punish extends JavaPlugin {
         PunishAPI.setServerEventRegistry(new ServerEventRegistryImpl());
         PunishAPI.getServerEventRegistry().registerListener(new BanEventListener());
         PunishAPI.getServerEventRegistry().registerListener(new PunishStepEventListener());
+        PunishAPI.getServerEventRegistry().registerListener(new MuteEventListener());
+        PunishAPI.getServerEventRegistry().registerListener(new CacheUpdateEventListener());
         
         loadPunishActions();
     }
@@ -51,7 +56,13 @@ public class Punish extends JavaPlugin {
     @Override
     public void onEnable() {
         instance = this;
-        serverId = getConfig().getString("storage.server-id", getName());
+        serverId = getConfig().getString("storage.server-id", null);
+        if (serverId == null || serverId.isEmpty()) {
+            serverId = java.util.UUID.randomUUID().toString().substring(0, 8);
+            getConfig().set("storage.server-id", serverId);
+            saveConfig();
+            getLogger().info("已生成隨機 server-id: " + serverId);
+        }
         try {
             String use = getConfig().getString("storage.use", "sqlite").toLowerCase();
             switch (use) {
@@ -74,6 +85,18 @@ public class Punish extends JavaPlugin {
             e.printStackTrace();
             getServer().getPluginManager().disablePlugin(this);
         }
+
+        // 載入所有 ban/mute 到記憶體快取
+        try {
+            CacheManager.loadBans(storage.loadAllBans());
+            CacheManager.loadMutes(storage.loadAllMutes());
+            getLogger().info("快取載入完成: " + CacheManager.banCount() + " bans, " + CacheManager.muteCount() + " mutes");
+        } catch (Exception e) {
+            e.printStackTrace();
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+
         registerListener(new PlayerEvent());
         registerCommand("punish", new PunishCommand());
         registerCommand("ban", new BanCommand());

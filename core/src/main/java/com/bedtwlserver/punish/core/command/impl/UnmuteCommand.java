@@ -1,7 +1,9 @@
 package com.bedtwlserver.punish.core.command.impl;
 
 import com.bedtwlserver.punish.core.Punish;
+import com.bedtwlserver.punish.core.cache.CacheManager;
 import com.bedtwlserver.punish.core.command.CommandBase;
+import com.bedtwlserver.punish.core.event.CacheUpdateServerEvent;
 import com.bedtwlserver.punish.core.model.MojangProfile;
 import com.bedtwlserver.punish.core.util.MojangApiUtil;
 import org.bukkit.Bukkit;
@@ -28,6 +30,15 @@ public class UnmuteCommand extends CommandBase {
         Player online = Bukkit.getPlayerExact(targetName);
         if (online != null) {
             Punish.getStorage().removeMute(online.getUniqueId());
+            CacheManager.removeMute(online.getUniqueId());
+
+            CacheUpdateServerEvent cacheEvent = new CacheUpdateServerEvent(
+                    Punish.instance.getServerId(),
+                    CacheUpdateServerEvent.Action.REMOVE_MUTE,
+                    online.getUniqueId(), online.getName(), "", "", -1L
+            );
+            Punish.getStorage().addServerEvent(cacheEvent);
+
             sender.sendMessage(color(
                     plugin.getMessage("unmute_success").replace("{player}", online.getName())
             ));
@@ -45,6 +56,15 @@ public class UnmuteCommand extends CommandBase {
 
             Bukkit.getScheduler().runTask(plugin, () -> {
                 Punish.getStorage().removeMute(profile.uuid());
+                CacheManager.removeMute(profile.uuid());
+
+                CacheUpdateServerEvent cacheEvent = new CacheUpdateServerEvent(
+                        Punish.instance.getServerId(),
+                        CacheUpdateServerEvent.Action.REMOVE_MUTE,
+                        profile.uuid(), profile.name(), "", "", -1L
+                );
+                Punish.getStorage().addServerEvent(cacheEvent);
+
                 sender.sendMessage(color(
                         plugin.getMessage("unmute_success").replace("{player}", profile.name())
                 ));
@@ -54,6 +74,9 @@ public class UnmuteCommand extends CommandBase {
 
     @Override
     protected List<String> getTabCompletions(@NonNull CommandSender sender, String @NonNull [] args) {
+        if (args.length == 1) {
+            return null;
+        }
         return List.of();
     }
 }

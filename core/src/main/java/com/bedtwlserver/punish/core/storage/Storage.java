@@ -3,6 +3,7 @@ package com.bedtwlserver.punish.core.storage;
 import com.bedtwlserver.punish.api.event.ServerEvent;
 import com.bedtwlserver.punish.core.model.PunishData;
 
+import java.util.Map;
 import java.util.UUID;
 import java.util.List;
 
@@ -20,6 +21,9 @@ public abstract class Storage {
 
     public abstract PunishData getBan(UUID uuid);
     public abstract PunishData getMute(UUID uuid);
+
+    public abstract Map<UUID, PunishData> loadAllBans();
+    public abstract Map<UUID, PunishData> loadAllMutes();
 
     public abstract void addServerEvent(ServerEvent event);
     public abstract List<ServerEvent> getServerEvents(String serverId);

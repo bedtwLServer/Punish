@@ -17,9 +17,12 @@ public class ServerEventRegistryImpl implements ServerEventRegistry {
     
     @Override
     public void registerListener(ServerEventListener listener) {
-        if (!listeners.contains(listener)) {
-            listeners.add(listener);
+        for (ServerEventListener existing : listeners) {
+            if (existing.getClass().equals(listener.getClass())) {
+                return;
+            }
         }
+        listeners.add(listener);
     }
     
     @Override

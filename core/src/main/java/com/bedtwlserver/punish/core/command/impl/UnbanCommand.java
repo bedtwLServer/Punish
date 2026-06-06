@@ -1,7 +1,9 @@
 package com.bedtwlserver.punish.core.command.impl;
 
 import com.bedtwlserver.punish.core.Punish;
+import com.bedtwlserver.punish.core.cache.CacheManager;
 import com.bedtwlserver.punish.core.command.CommandBase;
+import com.bedtwlserver.punish.core.event.CacheUpdateServerEvent;
 import com.bedtwlserver.punish.core.model.MojangProfile;
 import com.bedtwlserver.punish.core.util.MojangApiUtil;
 import org.bukkit.Bukkit;
@@ -34,7 +36,20 @@ public class UnbanCommand extends CommandBase {
             }
 
             Bukkit.getScheduler().runTask(plugin, () -> {
+                // 從資料庫移除
                 Punish.getStorage().removeBan(profile.uuid());
+
+                // 更新快取
+                CacheManager.removeBan(profile.uuid());
+
+                // 通知其他伺服器更新快取
+                CacheUpdateServerEvent cacheEvent = new CacheUpdateServerEvent(
+                        Punish.instance.getServerId(),
+                        CacheUpdateServerEvent.Action.REMOVE_BAN,
+                        profile.uuid(), profile.name(), "", "", -1L
+                );
+                Punish.getStorage().addServerEvent(cacheEvent);
+
                 sender.sendMessage(color(
                         plugin.getMessage("unban_success").replace("{player}", profile.name())
                 ));
