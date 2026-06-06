@@ -33,7 +33,7 @@ public class UnmuteCommand extends CommandBase {
             CacheManager.removeMute(online.getUniqueId());
 
             CacheUpdateServerEvent cacheEvent = new CacheUpdateServerEvent(
-                    Punish.instance.getServerId(),
+                    Punish.getServerId(),
                     CacheUpdateServerEvent.Action.REMOVE_MUTE,
                     online.getUniqueId(), online.getName(), "", "", -1L
             );
@@ -59,7 +59,7 @@ public class UnmuteCommand extends CommandBase {
                 CacheManager.removeMute(profile.uuid());
 
                 CacheUpdateServerEvent cacheEvent = new CacheUpdateServerEvent(
-                        Punish.instance.getServerId(),
+                        Punish.getServerId(),
                         CacheUpdateServerEvent.Action.REMOVE_MUTE,
                         profile.uuid(), profile.name(), "", "", -1L
                 );

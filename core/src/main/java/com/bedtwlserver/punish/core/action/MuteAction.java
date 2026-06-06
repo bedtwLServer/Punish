@@ -18,7 +18,7 @@ public class MuteAction implements PunishAction {
             return;
         }
         String reason = args.length > 1 ? String.join(" ", Arrays.copyOfRange(args, 1, args.length)) : Punish.instance.getMessage("no_reason");
-        String executorName = executor instanceof Player ? ((Player) executor).getName() : Punish.instance.getMessage("console");
+        String executorName = executor instanceof Player ? executor.getName() : Punish.instance.getMessage("console");
 
         // 添加到資料庫
         Punish.getStorage().addMute(uuid, name, executorName, reason, -1L);
@@ -28,7 +28,7 @@ public class MuteAction implements PunishAction {
 
         // 通知其他伺服器更新快取
         CacheUpdateServerEvent cacheEvent = new CacheUpdateServerEvent(
-                Punish.instance.getServerId(),
+                Punish.getServerId(),
                 CacheUpdateServerEvent.Action.ADD_MUTE,
                 uuid, name, executorName, reason, -1L
         );
@@ -36,7 +36,7 @@ public class MuteAction implements PunishAction {
 
         // 觸發跨服 Mute 事件
         MuteServerEvent muteEvent = new MuteServerEvent(
-                Punish.instance.getServerId(),
+                Punish.getServerId(),
                 uuid,
                 name,
                 executorName,

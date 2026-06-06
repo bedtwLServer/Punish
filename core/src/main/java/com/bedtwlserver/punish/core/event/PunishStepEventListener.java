@@ -21,11 +21,11 @@ public class PunishStepEventListener implements ServerEventListener {
             return;
         }
 
-        Punish.instance.getLogger().info("執行懲罰步驟: " + punishEvent.getStepName());
+        Punish.instance.getLogger().info("執行懲罰步驟: " + punishEvent.stepName());
 
-        List<String> steps = Punish.getPunishRegistry().getStep(punishEvent.getStepName());
+        List<String> steps = Punish.getPunishRegistry().getStep(punishEvent.stepName());
         if (steps == null || steps.isEmpty()) {
-            Punish.instance.getLogger().warning("未找到懲罰步驟: " + punishEvent.getStepName());
+            Punish.instance.getLogger().warning("未找到懲罰步驟: " + punishEvent.stepName());
             return;
         }
 
@@ -45,8 +45,8 @@ public class PunishStepEventListener implements ServerEventListener {
             String[] args = parts.length > 1 ? Arrays.copyOfRange(parts, 1, parts.length) : new String[0];
 
             try {
-                action.onExecute(Bukkit.getConsoleSender(), punishEvent.getPlayerName(),
-                        punishEvent.getPlayerUUID(), args);
+                action.onExecute(Bukkit.getConsoleSender(), punishEvent.playerName(),
+                        punishEvent.playerUUID(), args);
                 Punish.instance.getLogger().info("已執行動作: " + actionName);
             } catch (Exception e) {
                 Punish.instance.getLogger().warning("執行動作失敗: " + actionName + " - " + e.getMessage());

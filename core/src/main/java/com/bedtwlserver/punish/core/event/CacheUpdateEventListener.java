@@ -20,7 +20,7 @@ public class CacheUpdateEventListener implements ServerEventListener {
             return;
         }
 
-        UUID uuid = cacheEvent.getPlayerUUID();
+        UUID uuid = cacheEvent.playerUUID();
 
         switch (cacheEvent.getAction()) {
             case ADD_BAN -> CacheManager.putBan(uuid, new PunishData(

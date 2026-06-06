@@ -29,7 +29,7 @@ public class BanAction implements PunishAction {
 
         // 通知其他伺服器更新快取
         CacheUpdateServerEvent cacheEvent = new CacheUpdateServerEvent(
-                Punish.instance.getServerId(),
+                Punish.getServerId(),
                 CacheUpdateServerEvent.Action.ADD_BAN,
                 uuid, name, executorName, reason, -1L
         );
@@ -37,7 +37,7 @@ public class BanAction implements PunishAction {
 
         // 創建並觸發 Ban 事件（BanEventListener 會處理踢出）
         BanServerEvent banEvent = new BanServerEvent(
-                Punish.instance.getServerId(),
+                Punish.getServerId(),
                 uuid,
                 name,
                 executorName,

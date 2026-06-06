@@ -2,6 +2,7 @@ package com.bedtwlserver.punish.core.event;
 
 import com.bedtwlserver.punish.api.event.ServerEvent;
 import com.google.gson.JsonObject;
+import lombok.Getter;
 
 import java.util.UUID;
 
@@ -13,9 +14,13 @@ public class BanServerEvent implements ServerEvent {
 
     private final String sourceServer;
     private final UUID playerUUID;
+    @Getter
     private final String playerName;
+    @Getter
     private final String executor;
+    @Getter
     private final String reason;
+    @Getter
     private final long expireTime;
     private final long timestamp;
 
@@ -36,34 +41,18 @@ public class BanServerEvent implements ServerEvent {
     }
 
     @Override
-    public String getSourceServer() {
+    public String sourceServer() {
         return sourceServer;
     }
 
     @Override
-    public UUID getPlayerUUID() {
+    public UUID playerUUID() {
         return playerUUID;
     }
 
     @Override
-    public long getTimestamp() {
+    public long timestamp() {
         return timestamp;
-    }
-
-    public String getPlayerName() {
-        return playerName;
-    }
-
-    public String getExecutor() {
-        return executor;
-    }
-
-    public String getReason() {
-        return reason;
-    }
-
-    public long getExpireTime() {
-        return expireTime;
     }
 
     @Override

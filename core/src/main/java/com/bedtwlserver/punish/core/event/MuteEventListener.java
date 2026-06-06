@@ -17,7 +17,7 @@ public class MuteEventListener implements ServerEventListener {
             return;
         }
 
-        Player player = org.bukkit.Bukkit.getPlayer(muteEvent.getPlayerUUID());
+        Player player = org.bukkit.Bukkit.getPlayer(muteEvent.playerUUID());
         if (player != null && player.isOnline()) {
             player.sendMessage(Punish.instance.color(
                     Punish.instance.getMessage("denied_muted")

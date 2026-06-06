@@ -44,7 +44,7 @@ public class UnbanCommand extends CommandBase {
 
                 // 通知其他伺服器更新快取
                 CacheUpdateServerEvent cacheEvent = new CacheUpdateServerEvent(
-                        Punish.instance.getServerId(),
+                        Punish.getServerId(),
                         CacheUpdateServerEvent.Action.REMOVE_BAN,
                         profile.uuid(), profile.name(), "", "", -1L
                 );

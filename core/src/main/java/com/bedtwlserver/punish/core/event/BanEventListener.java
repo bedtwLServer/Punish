@@ -19,7 +19,7 @@ public class BanEventListener implements ServerEventListener {
         }
 
         // 如果玩家在本伺服器在線，立即踢出
-        Player player = Bukkit.getPlayer(banEvent.getPlayerUUID());
+        Player player = Bukkit.getPlayer(banEvent.playerUUID());
         if (player != null && player.isOnline()) {
             String kickMessage = Punish.instance.color(
                     Punish.instance.getMessage("denied_banned")

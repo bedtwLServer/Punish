@@ -79,7 +79,7 @@ public class SQLiteStorage extends JdbcStorage {
     }
 
     @Override
-    protected void migrateServerEventTable(Statement statement) throws SQLException {
+    protected void migrateServerEventTable(Statement statement) {
         try {
             statement.executeUpdate("ALTER TABLE server_events ADD COLUMN processed_by TEXT NOT NULL DEFAULT ''");
         } catch (SQLException ignored) {

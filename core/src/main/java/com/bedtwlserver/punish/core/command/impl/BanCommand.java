@@ -62,7 +62,7 @@ public class BanCommand extends CommandBase {
 
         // 通知其他伺服器更新快取
         CacheUpdateServerEvent cacheEvent = new CacheUpdateServerEvent(
-                Punish.instance.getServerId(),
+                Punish.getServerId(),
                 CacheUpdateServerEvent.Action.ADD_BAN,
                 uuid, playerName, executor, reason, -1L
         );
@@ -70,7 +70,7 @@ public class BanCommand extends CommandBase {
 
         // 觸發跨服 Ban 事件（BanEventListener 會處理踢出）
         BanServerEvent banEvent = new BanServerEvent(
-                Punish.instance.getServerId(),
+                Punish.getServerId(),
                 uuid,
                 playerName,
                 executor,

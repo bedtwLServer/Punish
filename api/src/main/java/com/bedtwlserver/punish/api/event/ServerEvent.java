@@ -16,23 +16,23 @@ public interface ServerEvent {
     /**
      * 獲取事件來源伺服器 ID
      */
-    String getSourceServer();
+    String sourceServer();
 
     /**
      * 獲取涉及的玩家 UUID（可選，如果不相關則返回 null）
      */
-    UUID getPlayerUUID();
+    UUID playerUUID();
 
     /**
      * 獲取事件創建時間（時間戳）
      */
-    long getTimestamp();
+    long timestamp();
 
     /**
      * 獲取事件 ID（用於追蹤和標記為已處理）
      * 如果事件尚未保存到資料庫，返回 0
      */
-    default long getId() {
+    default long id() {
         return 0;
     }
 

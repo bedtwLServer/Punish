@@ -39,16 +39,6 @@ public class MySQLStorage extends JdbcStorage {
     }
 
     @Override
-    protected int getMaximumPoolSize() {
-        return 10;
-    }
-
-    @Override
-    protected int getMinimumIdle() {
-        return 2;
-    }
-
-    @Override
     protected void applyPoolProperties(com.zaxxer.hikari.HikariConfig config) {
         config.addDataSourceProperty("cachePrepStmts", "true");
         config.addDataSourceProperty("prepStmtCacheSize", "250");
@@ -113,7 +103,7 @@ public class MySQLStorage extends JdbcStorage {
     }
 
     @Override
-    protected void migrateServerEventTable(Statement statement) throws SQLException {
+    protected void migrateServerEventTable(Statement statement) {
         try {
             statement.executeUpdate("ALTER TABLE server_events ADD COLUMN processed_by TEXT NOT NULL DEFAULT ''");
         } catch (SQLException ignored) {

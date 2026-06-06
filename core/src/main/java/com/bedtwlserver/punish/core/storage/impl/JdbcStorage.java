@@ -217,7 +217,7 @@ public abstract class JdbcStorage extends Storage {
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, event.getEventType());
             statement.setString(2, event.toJson());
-            statement.setString(3, event.getSourceServer());
+            statement.setString(3, event.sourceServer());
             statement.executeUpdate();
         } catch (SQLException e) {
             throw new IllegalStateException("新增伺服器事件失敗", e);
@@ -372,7 +372,7 @@ public abstract class JdbcStorage extends Storage {
 
     protected abstract String getMuteUpsertSql();
 
-    protected void migrateServerEventTable(Statement statement) throws SQLException {
+    protected void migrateServerEventTable(Statement statement) {
     }
 
     private void loadDriver() {

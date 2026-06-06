@@ -22,22 +22,17 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class Punish extends JavaPlugin {
 
+    // Static accessor for PunishRegistry (Lombok @Getter on static field doesn't produce static getter)
     @Getter
     private static final PunishRegistry punishRegistry = new PunishRegistry();
     public static Punish instance;
     @Getter
     private static Storage storage;
-    @Getter
     private String serverId;
 
     // Static accessor for serverId (instance field, needs instance reference)
     public static String getServerId() {
         return instance != null ? instance.serverId : null;
-    }
-
-    // Static accessor for PunishRegistry (Lombok @Getter on static field doesn't produce static getter)
-    public static PunishRegistry getPunishRegistry() {
-        return punishRegistry;
     }
 
     @Override
@@ -145,22 +140,20 @@ public class Punish extends JavaPlugin {
         if (getConfig().getConfigurationSection("punish") == null) {
             return;
         }
-        getConfig().getConfigurationSection("punish").getKeys(false).forEach(step -> {
-            punishRegistry.registerStep(step, getConfig().getStringList("punish." + step));
-        });
+        getConfig().getConfigurationSection("punish").getKeys(false).forEach(step -> punishRegistry.registerStep(step, getConfig().getStringList("punish." + step)));
     }
 
     private void pollServerEvents() {
         try {
             for (ServerEvent event : storage.getServerEvents(serverId)) {
-                getLogger().info("收到事件: " + event.getEventType() + " (ID: " + event.getId() + ")");
+                getLogger().info("收到事件: " + event.getEventType() + " (ID: " + event.id() + ")");
                 Bukkit.getScheduler().runTask(this, () -> {
                     try {
                         executeServerEvent(event);
                         // 標記事件為已處理
-                        if (event.getId() > 0) {
-                            storage.markServerEventProcessed(event.getId(), serverId);
-                            getLogger().info("已標記事件為已處理 (ID: " + event.getId() + ")");
+                        if (event.id() > 0) {
+                            storage.markServerEventProcessed(event.id(), serverId);
+                            getLogger().info("已標記事件為已處理 (ID: " + event.id() + ")");
                         }
                     } catch (Exception e) {
                         getLogger().warning("執行伺服器事件失敗: " + e.getMessage());
