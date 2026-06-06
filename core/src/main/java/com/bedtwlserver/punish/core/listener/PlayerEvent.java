@@ -30,7 +30,7 @@ public class PlayerEvent implements Listener {
         PunishData punishData = Punish.getStorage().getMute(event.getPlayer().getUniqueId());
         if (punishData == null) return;
         if (punishData.expireAt() != -1 && punishData.expireAt() < System.currentTimeMillis()) {
-            Bukkit.getScheduler().runTaskAsynchronously(Punish.instance, () -> Punish.getStorage().removeBan(event.getPlayer().getUniqueId()));
+            Bukkit.getScheduler().runTaskAsynchronously(Punish.instance, () -> Punish.getStorage().removeMute(event.getPlayer().getUniqueId()));
             return;
         }
         event.setCancelled(true);
@@ -38,7 +38,7 @@ public class PlayerEvent implements Listener {
                 .replace("{duration}", String.valueOf(punishData.expireAt()))
                 .replace("{executor}", punishData.executor())
                 .replace("{reason}", punishData.reason()))
-                .replace("{expireAt}", punishData.expireAt() < 1 ? String.valueOf(punishData.expireAt()) : Punish.instance.getMessage("permanent")));
+                .replace("{expireAt}", punishData.expireAt() >= 0 ? String.valueOf(punishData.expireAt()) : Punish.instance.getMessage("permanent")));
 
     }
 }

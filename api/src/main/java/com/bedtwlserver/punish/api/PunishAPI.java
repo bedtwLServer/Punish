@@ -8,8 +8,9 @@ public final class PunishAPI {
     @Getter
     @Setter
     private static PunishActionRegistry punishActionRegistry;
-    
+
     @Getter
     @Setter
     private static ServerEventRegistry serverEventRegistry;
+    }
 }

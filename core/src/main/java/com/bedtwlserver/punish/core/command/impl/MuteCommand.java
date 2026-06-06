@@ -1,7 +1,9 @@
 package com.bedtwlserver.punish.core.command.impl;
 
 import com.bedtwlserver.punish.core.Punish;
+import com.bedtwlserver.punish.api.PunishAPI;
 import com.bedtwlserver.punish.core.command.CommandBase;
+import com.bedtwlserver.punish.core.event.MuteServerEvent;
 import com.bedtwlserver.punish.core.model.MojangProfile;
 import com.bedtwlserver.punish.core.util.MojangApiUtil;
 import org.bukkit.Bukkit;
@@ -50,6 +52,20 @@ public class MuteCommand extends CommandBase {
 
     private void applyMute(CommandSender sender, String playerName, java.util.UUID uuid, String executor, String reason) {
         Punish.getStorage().addMute(uuid, playerName, executor, reason, -1L);
+
+        // 創建並觸發跨服 Mute 事件
+        MuteServerEvent muteEvent = new MuteServerEvent(
+                Punish.instance.getServerId(),
+                uuid,
+                playerName,
+                executor,
+                reason,
+                -1L
+        );
+        if (PunishAPI.getServerEventRegistry() != null) {
+            PunishAPI.getServerEventRegistry().fireEvent(muteEvent);
+        }
+
         Player online = Bukkit.getPlayer(uuid);
         if (online != null) {
             online.sendMessage(color(plugin.getMessage("denied_muted")

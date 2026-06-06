@@ -1,7 +1,9 @@
 package com.bedtwlserver.punish.core.command.impl;
 
 import com.bedtwlserver.punish.core.Punish;
+import com.bedtwlserver.punish.api.PunishAPI;
 import com.bedtwlserver.punish.core.command.CommandBase;
+import com.bedtwlserver.punish.core.event.BanServerEvent;
 import com.bedtwlserver.punish.core.model.MojangProfile;
 import com.bedtwlserver.punish.core.util.MojangApiUtil;
 import org.bukkit.Bukkit;
@@ -51,6 +53,20 @@ public class BanCommand extends CommandBase {
 
     private void applyBan(CommandSender sender, String playerName, java.util.UUID uuid, String executor, String reason) {
         Punish.getStorage().addBan(uuid, playerName, executor, reason, -1L);
+
+        // 創建並觸發跨服 Ban 事件
+        BanServerEvent banEvent = new BanServerEvent(
+                Punish.instance.getServerId(),
+                uuid,
+                playerName,
+                executor,
+                reason,
+                -1L
+        );
+        if (PunishAPI.getServerEventRegistry() != null) {
+            PunishAPI.getServerEventRegistry().fireEvent(banEvent);
+        }
+
         Player online = Bukkit.getPlayer(uuid);
         if (online != null) {
             online.kickPlayer(color(plugin.getMessage("denied_banned")
