@@ -11,7 +11,12 @@ import java.util.UUID;
  * 當一個玩家被 mute 時觸發
  */
 public class MuteServerEvent implements ServerEvent {
+
+    @Getter
+    private final long id;
+    @Getter
     private final String sourceServer;
+    @Getter
     private final UUID playerUUID;
     @Getter
     private final String playerName;
@@ -21,10 +26,17 @@ public class MuteServerEvent implements ServerEvent {
     private final String reason;
     @Getter
     private final long expireTime;
+    @Getter
     private final long timestamp;
 
     public MuteServerEvent(String sourceServer, UUID playerUUID, String playerName,
-                           String executor, String reason, long expireTime) {
+                          String executor, String reason, long expireTime) {
+        this(0, sourceServer, playerUUID, playerName, executor, reason, expireTime);
+    }
+
+    public MuteServerEvent(long id, String sourceServer, UUID playerUUID, String playerName,
+                          String executor, String reason, long expireTime) {
+        this.id = id;
         this.sourceServer = sourceServer;
         this.playerUUID = playerUUID;
         this.playerName = playerName;
@@ -37,21 +49,6 @@ public class MuteServerEvent implements ServerEvent {
     @Override
     public String getEventType() {
         return "mute";
-    }
-
-    @Override
-    public String sourceServer() {
-        return sourceServer;
-    }
-
-    @Override
-    public UUID playerUUID() {
-        return playerUUID;
-    }
-
-    @Override
-    public long timestamp() {
-        return timestamp;
     }
 
     @Override

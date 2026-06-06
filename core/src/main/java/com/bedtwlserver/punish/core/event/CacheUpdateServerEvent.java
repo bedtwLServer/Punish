@@ -12,6 +12,9 @@ import java.util.UUID;
  */
 public class CacheUpdateServerEvent implements ServerEvent {
 
+    @Getter
+    private final long id;
+    @Getter
     private final String sourceServer;
     @Getter
     private final Action action;
@@ -25,9 +28,17 @@ public class CacheUpdateServerEvent implements ServerEvent {
     private final String reason;
     @Getter
     private final long expireTime;
+    @Getter
     private final long timestamp;
+
     public CacheUpdateServerEvent(String sourceServer, Action action, UUID playerUUID,
-                                  String playerName, String executor, String reason, long expireTime) {
+                                   String playerName, String executor, String reason, long expireTime) {
+        this(0, sourceServer, action, playerUUID, playerName, executor, reason, expireTime);
+    }
+
+    public CacheUpdateServerEvent(long id, String sourceServer, Action action, UUID playerUUID,
+                                   String playerName, String executor, String reason, long expireTime) {
+        this.id = id;
         this.sourceServer = sourceServer;
         this.action = action;
         this.playerUUID = playerUUID;
@@ -38,33 +49,18 @@ public class CacheUpdateServerEvent implements ServerEvent {
         this.timestamp = System.currentTimeMillis();
     }
 
-    public static CacheUpdateServerEvent fromJson(String sourceServer, UUID playerUUID, JsonObject json) {
+    public static CacheUpdateServerEvent fromJson(long id, String sourceServer, UUID playerUUID, JsonObject json) {
         Action action = Action.valueOf(json.get("action").getAsString());
         String playerName = json.get("player_name").getAsString();
         String executor = json.get("executor").getAsString();
         String reason = json.get("reason").getAsString();
         long expireTime = json.get("expire_time").getAsLong();
-        return new CacheUpdateServerEvent(sourceServer, action, playerUUID, playerName, executor, reason, expireTime);
+        return new CacheUpdateServerEvent(id, sourceServer, action, playerUUID, playerName, executor, reason, expireTime);
     }
 
     @Override
     public String getEventType() {
         return "cache_update";
-    }
-
-    @Override
-    public String sourceServer() {
-        return sourceServer;
-    }
-
-    @Override
-    public UUID playerUUID() {
-        return playerUUID;
-    }
-
-    @Override
-    public long timestamp() {
-        return timestamp;
     }
 
     @Override

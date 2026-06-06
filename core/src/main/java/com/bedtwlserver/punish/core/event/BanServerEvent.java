@@ -12,7 +12,11 @@ import java.util.UUID;
  */
 public class BanServerEvent implements ServerEvent {
 
+    @Getter
+    private final long id;
+    @Getter
     private final String sourceServer;
+    @Getter
     private final UUID playerUUID;
     @Getter
     private final String playerName;
@@ -22,10 +26,17 @@ public class BanServerEvent implements ServerEvent {
     private final String reason;
     @Getter
     private final long expireTime;
+    @Getter
     private final long timestamp;
 
     public BanServerEvent(String sourceServer, UUID playerUUID, String playerName,
-                          String executor, String reason, long expireTime) {
+                         String executor, String reason, long expireTime) {
+        this(0, sourceServer, playerUUID, playerName, executor, reason, expireTime);
+    }
+
+    public BanServerEvent(long id, String sourceServer, UUID playerUUID, String playerName,
+                         String executor, String reason, long expireTime) {
+        this.id = id;
         this.sourceServer = sourceServer;
         this.playerUUID = playerUUID;
         this.playerName = playerName;
@@ -38,21 +49,6 @@ public class BanServerEvent implements ServerEvent {
     @Override
     public String getEventType() {
         return "ban";
-    }
-
-    @Override
-    public String sourceServer() {
-        return sourceServer;
-    }
-
-    @Override
-    public UUID playerUUID() {
-        return playerUUID;
-    }
-
-    @Override
-    public long timestamp() {
-        return timestamp;
     }
 
     @Override

@@ -227,16 +227,18 @@ public abstract class JdbcStorage extends Storage {
     @Override
     public List<ServerEvent> getServerEvents(String serverId) {
         String sql = "SELECT id, event_type, event_data, source_server, processed_by FROM server_events " +
-                "WHERE processed_by IS NULL OR processed_by = '' OR " +
-                "(processed_by != ? AND processed_by NOT LIKE ? AND processed_by NOT LIKE ? AND processed_by NOT LIKE ?) " +
+                "WHERE source_server != ? AND (" +
+                "processed_by IS NULL OR processed_by = '' OR " +
+                "(processed_by != ? AND processed_by NOT LIKE ? AND processed_by NOT LIKE ? AND processed_by NOT LIKE ?)) " +
                 "ORDER BY id ASC";
         List<ServerEvent> events = new ArrayList<>();
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, serverId);
-            statement.setString(2, serverId + ",%");
-            statement.setString(3, "%," + serverId);
-            statement.setString(4, "%," + serverId + ",%");
+            statement.setString(2, serverId);
+            statement.setString(3, serverId + ",%");
+            statement.setString(4, "%," + serverId);
+            statement.setString(5, "%," + serverId + ",%");
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
                     long id = resultSet.getLong("id");
@@ -283,9 +285,10 @@ public abstract class JdbcStorage extends Storage {
     private ServerEvent deserializeEvent(long id, String eventType, String eventData) {
         try {
             JsonObject json = JsonParser.parseString(eventData).getAsJsonObject();
-
+            
             if ("ban".equals(eventType)) {
                 return new BanServerEvent(
+                        id,
                         json.get("source_server").getAsString(),
                         UUID.fromString(json.get("player_uuid").getAsString()),
                         json.get("player_name").getAsString(),
@@ -295,6 +298,7 @@ public abstract class JdbcStorage extends Storage {
                 );
             } else if ("mute".equals(eventType)) {
                 return new MuteServerEvent(
+                        id,
                         json.get("source_server").getAsString(),
                         UUID.fromString(json.get("player_uuid").getAsString()),
                         json.get("player_name").getAsString(),
@@ -314,6 +318,7 @@ public abstract class JdbcStorage extends Storage {
                 );
             } else if ("cache_update".equals(eventType)) {
                 return CacheUpdateServerEvent.fromJson(
+                        id,
                         json.get("source_server").getAsString(),
                         UUID.fromString(json.get("player_uuid").getAsString()),
                         json
