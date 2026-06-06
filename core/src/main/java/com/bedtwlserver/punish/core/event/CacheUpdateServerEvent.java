@@ -64,6 +64,21 @@ public class CacheUpdateServerEvent implements ServerEvent {
     }
 
     @Override
+    public String sourceServer() {
+        return sourceServer;
+    }
+
+    @Override
+    public UUID playerUUID() {
+        return playerUUID;
+    }
+
+    @Override
+    public long timestamp() {
+        return timestamp;
+    }
+
+    @Override
     public String toJson() {
         JsonObject json = new JsonObject();
         json.addProperty("type", "cache_update");
