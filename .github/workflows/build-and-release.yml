@@ -6,25 +6,9 @@ on:
       - '**'
 
 jobs:
-  check:
-    runs-on: self-hosted
-    outputs:
-      should_build: ${{ steps.check.outputs.should_build }}
-    steps:
-      - name: Check commit message
-        id: check
-        run: |
-          MSG=$(git log -1 --pretty=format:"%s")
-          echo "Commit message: $MSG"
-          if echo "$MSG" | grep -q '^\[B\]'; then
-            echo "should_build=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "should_build=false" >> "$GITHUB_OUTPUT"
-          fi
-
   build:
-    needs: check
-    if: needs.check.outputs.should_build == 'true'
+    # 直接在任務頂層判斷：只有當 Commit 訊息以 [B] 開頭時才執行此任務
+    if: startsWith(github.event.head_commit.message, '[B]')
     runs-on: self-hosted
     steps:
       - name: Checkout
@@ -46,8 +30,7 @@ jobs:
           path: core/target/*.jar
 
   release:
-    needs: [check, build]
-    if: needs.check.outputs.should_build == 'true'
+    needs: build # 只有當 build 成功執行完畢後，才會進入 release
     runs-on: self-hosted
     permissions:
       contents: write
