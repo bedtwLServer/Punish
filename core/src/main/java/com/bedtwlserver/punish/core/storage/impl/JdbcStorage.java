@@ -264,7 +264,7 @@ public abstract class JdbcStorage extends Storage {
                 "WHEN processed_by LIKE ? THEN processed_by " +
                 "WHEN processed_by LIKE ? THEN processed_by " +
                 "WHEN processed_by LIKE ? THEN processed_by " +
-                "ELSE processed_by || ',' || ? END WHERE id = ?";
+                "ELSE CONCAT(processed_by, ',', ?) END WHERE id = ?";
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, serverId);
