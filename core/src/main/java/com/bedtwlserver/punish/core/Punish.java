@@ -151,9 +151,12 @@ public class Punish extends JavaPlugin {
                     try {
                         executeServerEvent(event);
                         // 標記事件為已處理
-                        if (event.id() > 0) {
-                            storage.markServerEventProcessed(event.id(), serverId);
-                            getLogger().info("已標記事件為已處理 (ID: " + event.id() + ")");
+                        if (event.getId() > 0) {
+                            storage.markServerEventProcessed(event.getId(), serverId);
+                            getLogger().info("已標記事件為已處理 (ID: " + event.getId() + ")");
+                        } else {
+                            // Fallback: delete events from source server for backward compatibility
+                            storage.deleteServerEventBySource(event.getSourceServer(), event.getEventType());
                         }
                     } catch (Exception e) {
                         getLogger().warning("執行伺服器事件失敗: " + e.getMessage());

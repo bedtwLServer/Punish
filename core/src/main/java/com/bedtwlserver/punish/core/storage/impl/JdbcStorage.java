@@ -380,6 +380,19 @@ public abstract class JdbcStorage extends Storage {
     protected void migrateServerEventTable(Statement statement) {
     }
 
+    @Override
+    public void deleteServerEventBySource(String sourceServer, String eventType) {
+        String sql = "DELETE FROM server_events WHERE source_server = ? AND event_type = ?";
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, sourceServer);
+            statement.setString(2, eventType);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new IllegalStateException("刪除伺服器事件失敗", e);
+        }
+    }
+
     private void loadDriver() {
         String jdbcUrl = getJdbcUrl();
         try {

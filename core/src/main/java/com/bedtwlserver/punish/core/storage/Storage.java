@@ -35,6 +35,7 @@ public abstract class Storage {
     public abstract List<ServerEvent> getServerEvents(String serverId);
 
     public abstract void markServerEventProcessed(long id, String serverId);
+    public abstract void deleteServerEventBySource(String sourceServer, String eventType);
 
     public abstract void disconnect();
 }
