@@ -13,4 +13,4 @@ public final class PunishAPI {
     @Setter
     private static ServerEventRegistry serverEventRegistry;
     }
-}
+
