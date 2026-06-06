@@ -36,6 +36,16 @@ public class Punish extends JavaPlugin {
     @Getter
     private String serverId;
 
+    // Static accessor for serverId (instance field, needs instance reference)
+    public static String getServerId() {
+        return instance != null ? instance.serverId : null;
+    }
+
+    // Static accessor for PunishRegistry (Lombok @Getter on static field doesn't produce static getter)
+    public static PunishRegistry getPunishRegistry() {
+        return punishRegistry;
+    }
+
     @Override
     public void onLoad() {
         saveDefaultConfig();

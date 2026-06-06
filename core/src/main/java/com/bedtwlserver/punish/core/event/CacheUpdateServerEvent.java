@@ -71,11 +71,6 @@ public class CacheUpdateServerEvent implements ServerEvent {
     }
 
     @Override
-    public UUID getPlayerUUID() {
-        return playerUUID;
-    }
-
-    @Override
     public long getTimestamp() {
         return timestamp;
     }

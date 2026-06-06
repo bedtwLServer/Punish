@@ -6,6 +6,8 @@ import com.bedtwlserver.punish.core.Punish;
 import com.bedtwlserver.punish.core.cache.CacheManager;
 import com.bedtwlserver.punish.core.model.PunishData;
 
+import java.util.UUID;
+
 /**
  * 快取更新事件監聽器
  * 接收來自其他伺服器的快取更新通知，同步本地快取
